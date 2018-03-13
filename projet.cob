@@ -106,6 +106,12 @@ WORKING-STORAGE SECTION.
     77 Wfe_dateDeb PIC 9(2)A(1)9(2)A(1)9(4).
     77 Wfc_lieu PIC A(40).
     77 Wfc_desc PIC A(2000).
+    77 Wfa_matr PIC A(5).
+    77 Wfa_nom PIC A(20).
+    77 Wfa_prenom PIC A(20).
+    77 Wfa_lieuServ PIC A(50).
+    77 Wfa_EnqEnCours PIC 9(5).
+
 
 PROCEDURE DIVISION.
     OPEN INPUT fenquetes
@@ -139,18 +145,19 @@ PROCEDURE DIVISION.
     CLOSE farchives
 
     *>menu et fonctions ici
-    PERFORM AJOUTER_ENQUETE
-    PERFORM RECHERCHER_ENQUETE
+    *>PERFORM AJOUTER_ENQUETE
+    *>PERFORM RECHERCHER_ENQUETE
+    PERFORM AJOUTER_AGENT
 
     STOP RUN.
 
 AJOUTER_ENQUETE.
     DISPLAY "Entrez le matricule du chef d'enquete :"
     ACCEPT Wfe_matrChef
-    DISPLAY "Entrez la date de dÈbut d'enquete : "
+    DISPLAY "Entrez la date de dÔøΩbut d'enquete : "
     ACCEPT Wfe_dateDeb
 
-    *> Attention il faut parcourir farchives et fenquetes pour crÈer l id
+    *> Attention il faut parcourir farchives et fenquetes pour crÔøΩer l id
     MOVE 0 TO Wnb
     MOVE 0 TO Wfin
     OPEN INPUT farchives
@@ -181,7 +188,7 @@ AJOUTER_ENQUETE.
        	INVALID KEY
         	DISPLAY "Existe deja"
 	    NOT INVALID KEY
-	        DISPLAY "Ajout rÈussi. L'enquÍte porte le numÈro "Wnb
+	        DISPLAY "Ajout rÔøΩussi. L'enquÔøΩte porte le numÔøΩro "Wnb
 	END-WRITE.
     CLOSE fenquetes
 
@@ -189,22 +196,22 @@ AJOUTER_ENQUETE.
 .
 
 MODIFIER_ENQUETE.
-	DISPLAY "Donner le numÈro de l'enquÍte ‡ modifier"
+	DISPLAY "Donner le numÔøΩro de l'enquÔøΩte ÔøΩ modifier"
 	ACCEPT Wfe_idEnq
 
 	OPEN I-O fenquetes
 	READ fenquetes
 	INVALID KEY
-		DISPLAY "EnquÍte introuvable."
+		DISPLAY "EnquÔøΩte introuvable."
 	NOT INVALID KEY
-	    DISPLAY "Modifier la date de l'enquÍte ? 1:OUI, 0:NON"
+	    DISPLAY "Modifier la date de l'enquÔøΩte ? 1:OUI, 0:NON"
 	    ACCEPT Wdecision
 	    IF Wdecision = 1
 	    THEN
 	    	DISPLAY "Donner la nouvelle date"
 	    	ACCEPT Wfe_dateDeb
 	    END-IF
-	    DISPLAY "Modifier le chef d'enquÍte ? 1:OUI, 0:NON"
+	    DISPLAY "Modifier le chef d'enquÔøΩte ? 1:OUI, 0:NON"
 	    ACCEPT Wdecision
 	    IF Wdecision = 1
 	    THEN
@@ -219,14 +226,14 @@ MODIFIER_ENQUETE.
 	CLOSE fenquetes
 .
 
-SUPPRIMER_ENQUETE. *> ‡ refaire
-	DISPLAY "Donner le numÈro de l'enqÍte ‡ archiver"
+SUPPRIMER_ENQUETE. *> ÔøΩ refaire
+	DISPLAY "Donner le numÔøΩro de l'enqÔøΩte ÔøΩ archiver"
 	ACCEPT Wfe_idEnq
 
 	OPEN I-O fenquetes
 	READ fenquetes
 	INVALID KEY
-		DISPLAY "EnquÍte introuvable."
+		DISPLAY "EnquÔøΩte introuvable."
 	NOT INVALID KEY
 		DELETE fenquetes
 	END-READ
@@ -234,21 +241,21 @@ SUPPRIMER_ENQUETE. *> ‡ refaire
 .
 
 RECHERCHER_ENQUETE.
-	DISPLAY "Donner l'enquÍte que vous voulez rechercher"
+	DISPLAY "Donner l'enquÔøΩte que vous voulez rechercher"
 	ACCEPT Wfe_idEnq
 
 	OPEN INPUT fenquetes
 	READ fenquetes
 	INVALID KEY
-		DISPLAY "EnquÍte introuvable."
+		DISPLAY "EnquÔøΩte introuvable."
 	NOT INVALID KEY
-		DISPLAY "EnquÍte existe."
+		DISPLAY "EnquÔøΩte existe."
 	END-READ
 	CLOSE fenquetes
 .
 
 AJOUTER_CRIME.
-	DISPLAY "Donner le lieu du dÈlit"
+	DISPLAY "Donner le lieu du dÔøΩlit"
 	ACCEPT Wfc_lieu
 	DISPLAY "Description : "
 	ACCEPT Wfc_desc
@@ -277,12 +284,12 @@ AJOUTER_CRIME.
        	INVALID KEY
         	DISPLAY "Existe deja"
 	    NOT INVALID KEY
-	        DISPLAY "Ajout rÈussi"
+	        DISPLAY "Ajout rÔøΩussi"
 	END-WRITE.
     CLOSE fcrimes
 
     PERFORM WITH TEST AFTER UNTIL Wdecision = 1
-    	DISPLAY "Ajouter une piËce ‡ conviction ? 1:OUI, 0:NON"
+    	DISPLAY "Ajouter une piÔøΩce ÔøΩ conviction ? 1:OUI, 0:NON"
     	ACCEPT Wdecision
 
     	*>PERFORM AJOUTER_PIECE
@@ -327,8 +334,53 @@ MODIFIER_LIENS.
 .
 SUPPRIMER_LIENS.
 .
-AJOUTER_AGENTS.
-.
+AJOUTER_AGENT.
+  PERFORM TEST_UNIQUE_MATRICULE_AGENT
+
+  DISPLAY "Nom de l'agent :"
+  ACCEPT Wfa_nom
+
+  DISPLAY "Pr√©nom de l'agent :"
+  ACCEPT Wfa_prenom
+
+  DISPLAY "Lieu de service de l'agent :"
+  ACCEPT Wfa_lieuServ
+
+  DISPLAY "Num√©ro de l'enqu√™te en charge de l'agent :"
+  ACCEPT Wfa_enqEnCours
+
+  MOVE Wfa_matr TO fa_matr
+  MOVE Wfa_nom TO fa_nom
+  MOVE Wfa_prenom TO fa_prenom
+  MOVE Wfa_lieuServ TO fa_lieuServ
+  MOVE Wfa_enqEnCours TO fa_EnqEnCours
+
+  OPEN EXTEND fagents
+  WRITE agentTampon END-WRITE
+  CLOSE fagents.
+
+  TEST_UNIQUE_MATRICULE_AGENT.
+  OPEN INPUT fagents
+  MOVE 0 TO wFin
+  MOVE 0 TO wTrouve
+
+  DISPLAY "Num√©ro de matricule de l'agent :"
+  ACCEPT Wfa_matr
+
+  PERFORM WITH TEST AFTER UNTIL wTrouve = 1 OR wFin = 1
+    READ fagents
+      AT END
+      MOVE 1 TO wFin
+      NOT AT END
+      IF fa_matr = Wfa_matr THEN
+        MOVE 1 TO wTrouve
+        DISPLAY "Ce num√©ro de matricule est d√©j√† attribu√©. Merci de resaisir un matricule valide."
+        CLOSE fagents
+        PERFORM TEST_UNIQUE_MATRICULE_AGENT
+      END-IF
+    END-READ
+  END-PERFORM
+  CLOSE fagents.
 MODIFIER_AGENTS.
 .
 SUPPRIMER_AGENTS.
